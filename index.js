@@ -4,6 +4,10 @@ import productRouter from "./routes/Product.js";
 import categoryRouter from "./routes/Category.js";
 import brandRouter from "./routes/Brands.js";
 import cors from "cors";
+import authRouter from "./routes/Auth.js";
+import userRouter from "./routes/User.js";
+import cartRouter from "./routes/Cart.js";
+import orderRouter from "./routes/Order.js";
 
 const app = express();
 
@@ -17,6 +21,10 @@ app.use(
 app.use("/products", productRouter);
 app.use("/categories", categoryRouter);
 app.use("/brands", brandRouter);
+app.use("/users", userRouter);
+app.use("/auth", authRouter);
+app.use("/cart", cartRouter);
+app.use("/orders", orderRouter);
 
 main().catch((err) => console.log(err));
 
