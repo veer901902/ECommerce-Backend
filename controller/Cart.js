@@ -24,10 +24,11 @@ export const fetchCartByUser = async (req, res) => {
 export const updateCart = async (req, res) => {
   const { id } = req.params;
   try {
-    const cart = await Cart.findByIdAndUpdate(id, req.body, {
+    const query = await Cart.findByIdAndUpdate(id, req.body, {
       new: true,
     });
-    res.status(200).json(cart);
+    const cartItem = await query.populate("product");
+    res.status(200).json(cartItem);
   } catch (err) {
     res.status(400).json(err);
   }
