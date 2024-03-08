@@ -1,15 +1,15 @@
 import express from "express";
+const app = express();
 import mongoose from "mongoose";
+import cors from "cors";
 import productRouter from "./routes/Product.js";
 import categoryRouter from "./routes/Category.js";
 import brandRouter from "./routes/Brands.js";
-import cors from "cors";
 import authRouter from "./routes/Auth.js";
 import userRouter from "./routes/User.js";
 import cartRouter from "./routes/Cart.js";
 import orderRouter from "./routes/Order.js";
 
-const app = express();
 
 app.use(express.json());
 app.use(
