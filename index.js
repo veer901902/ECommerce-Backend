@@ -12,18 +12,21 @@ import cartRouter from "./routes/Cart.js";
 import orderRouter from "./routes/Order.js";
 import passport from "passport";
 import session from "express-session";
-import crypto from "crypto";
 import bcrypt from "bcrypt";
-import { isAuth, sanitizeUser } from "./services/common.js";
+import { cookieExtractor, isAuth, sanitizeUser } from "./services/common.js";
 import User from "./model/User.js";
 import { Strategy as LocalStrategy } from "passport-local";
 import { Strategy as JwtStrategy, ExtractJwt } from "passport-jwt";
+import cookieParser from "cookie-parser";
 
 const SECRET_KEY = "SECRET_KEY";
 // JWT options
 const opts = {};
-opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
+opts.jwtFromRequest = cookieExtractor;
 opts.secretOrKey = SECRET_KEY; // TODO: should not be in code;
+
+app.use(express.static("build"));
+app.use(cookieParser());
 
 app.use(
   session({
@@ -39,6 +42,7 @@ app.use(
     exposedHeaders: ["X-Total-Count"],
   })
 );
+
 app.use(express.json());
 
 app.use("/products", isAuth(), productRouter);
@@ -52,35 +56,38 @@ app.use("/orders", isAuth(), orderRouter);
 // Passport Strategies
 passport.use(
   "local",
-  new LocalStrategy({ 
-    usernameField: 'email' // Specify your custom field name here
-  },async function (username, password, done) {
-    try {
-      const user = await User.findOne({ email: username });
-      if (!user) {
-        return done(null, false, { message: "invalid credentials" }); // for safety
-      }
+  new LocalStrategy(
+    {
+      usernameField: "email", // Specify your custom field name here
+    },
+    async function (username, password, done) {
+      try {
+        const user = await User.findOne({ email: username });
+        if (!user) {
+          return done(null, false, { message: "invalid credentials" }); // for safety
+        }
 
-      // Compare the password with the hashed password stored in the database
-      const passwordMatch = await bcrypt.compare(password, user.password);
-      if (!passwordMatch) {
-        return done(null, false, { message: "invalid credentials" });
-      }
+        // Compare the password with the hashed password stored in the database
+        const passwordMatch = await bcrypt.compare(password, user.password);
+        if (!passwordMatch) {
+          return done(null, false, { message: "invalid credentials" });
+        }
 
-      const token = jwt.sign(sanitizeUser(user), SECRET_KEY);
-      done(null, token); // this line sends to serializer
-    } catch (err) {
-      done(err);
+        const token = jwt.sign(sanitizeUser(user), SECRET_KEY);
+        done(null, { token }); // this line sends to serializer
+      } catch (err) {
+        done(err);
+      }
     }
-  })
+  )
 );
 
 passport.use(
   "jwt",
   new JwtStrategy(opts, async function (jwt_payload, done) {
-    console.log({ jwt_payload });
+    // console.log({ jwt_payload });
     try {
-      const user = await User.findOne({ id: jwt_payload.sub });
+      const user = await User.findById(jwt_payload.id);
       if (user) {
         return done(null, sanitizeUser(user)); // this calls serializer
       } else {

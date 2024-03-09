@@ -18,6 +18,7 @@ export const fetchAllProducts = async (req, res) => {
 
   try {
     let condition = {};
+    console.log(req.query);
     if (!req.query.admin) {
       condition.deleted = { $ne: true };
     }

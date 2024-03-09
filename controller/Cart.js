@@ -1,8 +1,9 @@
 import Cart from "../model/Cart.js";
 
 export const addToCart = async (req, res) => {
+  const {id} = req.user;
   try {
-    const query = await Cart.create(req.body);
+    const query = await Cart.create({...req.body, user: id});
     const item = await query.populate("product");
     res.status(201).json(item);
   } catch (error) {
@@ -11,9 +12,9 @@ export const addToCart = async (req, res) => {
 };
 
 export const fetchCartByUser = async (req, res) => {
-  const { user } = req.query;
+  const { id } = req.user;
   try {
-    const cartItems = await Cart.find({ user: user }).populate("product");
+    const cartItems = await Cart.find({ user: id }).populate("product");
 
     res.status(200).json(cartItems);
   } catch (err) {
